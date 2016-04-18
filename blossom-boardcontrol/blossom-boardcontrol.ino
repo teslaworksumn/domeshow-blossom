@@ -1,4 +1,4 @@
-#include <Adafruit_PWMServoDriver.h>
+#include "Adafruit_PWMServoDriver/Adafruit_PWMServoDriver.h"
 #include <Wire.h>
 #include <Crc16.h>
 
