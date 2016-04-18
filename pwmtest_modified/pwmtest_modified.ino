@@ -37,13 +37,9 @@ void setup() {
   Serial.begin(9600);
   Serial.println("16 channel PWM test!");
 
-  Serial.print("1");
   Wire.begin();
-  Serial.print("1.5");
   pwm.begin();
-  Serial.print("2");
   pwm.setPWMFreq(1600);  // This is the maximum PWM frequency
-  Serial.print("3");
   // if you want to really speed stuff up, you can go into 'fast 400khz I2C' mode
   // some i2c devices dont like this so much so if you're sharing the bus, watch
   // out for this!
