@@ -34,10 +34,10 @@ void setup()
   
 }
 
-uint8_t *readData(uint8_t length)
+uint8_t *readData(uint16_t len)
 {
-  uint8_t *data = new uint8_t[length];
-  for (uint8_t i = 0; i < length; i++)
+  uint8_t *data = new uint8_t[len];
+  for (uint8_t i = 0; i < len; i++)
   {
     // TODO check that Serial is available. while loop?
     uint8_t datam = Serial.read();
@@ -95,10 +95,10 @@ void loop()
       
       uint8_t lengthLow = Serial.read();
       uint16_t lengthHigh = Serial.read() << 8;
-      uint16_t length = lengthHigh + lengthLow;
+      uint16_t len = lengthHigh + lengthLow;
 
       crc.clearCrc();
-      uint8_t *data = readData(length);
+      uint8_t *data = readData(len);
       uint16_t packetCrc = getTwoBytesSerial();
       
       if (crc.getCrc() == packetCrc)
