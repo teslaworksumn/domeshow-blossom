@@ -99,6 +99,9 @@ def serial_reader():
 					sys.stdout.flush()
 					flush = False
 			time.sleep(0.05)
+		except SystemExit:
+			sys.stdout.write('SERIAL exiting due to SystemExit\n')
+			break
 		except OSError:
 			e = sys.exc_info()
 			sys.stderr.write('SERIAL: {0}: {1}\n'.format(e[0],e[1]))
@@ -109,7 +112,7 @@ def serial_reader():
 			sys.stderr.write('SERIAL: {0}: {1}\n'.format(e[0],e[1]))
 			traceback.print_tb(e[2])
 
-port = serial.Serial(port=portname, baudrate=baud, rtscts=True)
+port = serial.Serial(port=portname, baudrate=baud, rtscts=True, timeout=3)
 sys.stdout.write("SERIAL: opened {0} @ {1}\n".format(portname, baud))
 serial_thread = threading.Thread(target=serial_reader, args=[])
 serial_thread.start()
@@ -120,9 +123,19 @@ def allstop():
 	serial_reader_run = False
 	serial_thread.join()
 	port.close()
-atexit.register(allstop)
+def ehook(type, value, traceback):
+	sys.stderr.write("I found an ehook!\n")
+	if type is SystemExit:
+		allstop()
+		sys.__excepthook__(type, value, traceback)
+	else:
+		sys.__excepthook__(type, value, traceback)
+sys.excepthook = ehook
 
 def sendmagic():
-	port.write(bytearray(magicpacket))
+	if port.is_open:
+		port.write(bytearray(magicpacket))
+	else:
+		sys.stderr.write("SERIAL: Port cannot write as it is closed\n")
 
 
