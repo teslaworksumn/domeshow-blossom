@@ -1,6 +1,6 @@
 #include "Adafruit_PWMServoDriver/Adafruit_PWMServoDriver.h"
+#include "Crc16/Crc16.h"
 #include <Wire.h>
-#include <Crc16.h>
 
 Adafruit_PWMServoDriver *boards = new Adafruit_PWMServoDriver[9];
 Crc16 crc16;
