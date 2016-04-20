@@ -34,12 +34,12 @@ void setup() {
   Wire.pins(2, 14);   // ESP8266 can use any two pins, such as SDA to #2 and SCL to #14
 #endif
   
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("16 channel PWM test!");
 
-  Wire.begin();
   pwm.begin();
   pwm.setPWMFreq(1600);  // This is the maximum PWM frequency
+
   // if you want to really speed stuff up, you can go into 'fast 400khz I2C' mode
   // some i2c devices dont like this so much so if you're sharing the bus, watch
   // out for this!

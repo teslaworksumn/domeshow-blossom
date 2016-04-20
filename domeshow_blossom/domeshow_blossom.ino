@@ -1,3 +1,4 @@
+#include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <crc16.h>
 
@@ -24,7 +25,7 @@ byte state = STATE_READY;
 Adafruit_PWMServoDriver *boards = new Adafruit_PWMServoDriver[NUM_BOARDS];
 crc16 crc;
 
-uint8_t *data;
+byte *data;
 uint16_t data_len;
 
 
@@ -32,6 +33,10 @@ void setup() {
     pinMode(RTSPIN, INPUT);
     pinMode(CTSPIN, OUTPUT);
     Serial.begin(115200);
+
+    // Guess at size of data array
+    data_len = NUM_BOARDS * CH_PER_BOARD;
+    data = new byte[data_len];
     
     // Setup breakout boards
     for (uint8_t i = 0; i < NUM_BOARDS; i++)
@@ -52,12 +57,16 @@ void loop() {
             #endif
             messagewalk = true;
             digitalWrite(CTSPIN, HIGH);
-            if (Serial.available() > 0) {
+            if (Serial.available() > 8) {
+                Serial.print("Peek: ");
+                char b = Serial.peek();
+                Serial.println(b);
                 if (Serial.read() == magic[magic_status]) {
                     magic_status++;
                 } else {
                     magic_status=0;
                 }
+                Serial.print("Magic status: ");
                 Serial.println(magic_status);
                 if (magic_status >= MAGIC_LENGTH) {
                     state = STATE_READING;
@@ -72,16 +81,23 @@ void loop() {
             messagewalk = true;
             digitalWrite(CTSPIN, LOW);
             if (Serial.available() > 0) {
-                crc.clearCrc();
                 uint16_t len = getTwoBytesSerial();
+                Serial.print("Length: ");
                 Serial.println(len);
                 readData(len);
-                Serial.println(*data);
+                Serial.println("Data read");
+                // Update len for future use (writing)
+                data_len = len;
                 uint16_t packetCrc = getTwoBytesSerial();
-                Serial.println(crc.getCrc());
+                Serial.print("Calculated CRC: ");
+                uint16_t calculatedCrc = crc.XModemCrc(data, 0, data_len);
+                Serial.println(calculatedCrc);
+                Serial.print("Received CRC: ");
                 Serial.println(packetCrc);
-                if (crc.getCrc() != packetCrc)
+                messagewalk = false;
+                if (calculatedCrc != packetCrc)
                 {
+                    Serial.println("CRC doesn't match");
                     state = STATE_READY;
                 }
                 else
@@ -94,13 +110,13 @@ void loop() {
             #ifdef DEBUG
                 if (!messagewalk) Serial.println("WRITING");
             #endif
-            messagewalk = true;
             digitalWrite(CTSPIN, LOW);
             for (uint16_t i = 0; i < data_len; i++) {
                 uint8_t board_idx = i / CH_PER_BOARD;
                 uint8_t channel_idx = i % CH_PER_BOARD;
                 boards[board_idx].setPWM(channel_idx, 0, data[i] << 4);
             }
+            Serial.println("Done writing");
             state = STATE_READY;
             break;
         default:
@@ -111,8 +127,8 @@ void loop() {
 }
 
 uint16_t getTwoBytesSerial() {
-  uint8_t low = Serial.read();
   uint16_t high = Serial.read() << 8;
+  uint16_t low = Serial.read();
   uint16_t combined = high | low;
   return combined;
 }
@@ -121,18 +137,20 @@ void readData(uint16_t len) {
     // Resize data array if smaller than len
     // Should never happen
     if (len > data_len) {
-        uint8_t* new_data = new uint8_t[len];
+        Serial.println("Resizing data array");
+        byte* new_data = new byte[len];
         memcpy(data, new_data, data_len);
         data_len = len;
     }
 
-    // Read in data from serial
-    // and update CRC value
-    for (uint8_t i = 0; i < len; i++)
-    {
-        uint8_t datam = Serial.read();
-        data[i] = datam;
-        crc.updateCrc(datam);
+    // Wait for bytes to come in
+    while (Serial.available() < len) {
+        delay(0.01);
     }
+    
+    // Read in data from serial
+    Serial.readBytes(data, len);
+    
 }
+
 
