@@ -38,7 +38,7 @@ void setup() {
     for (uint8_t i = 0; i < NUM_BOARDS; i++)
     {
         // the default (and highest) address is 0x40
-        Adafruit_PWMServoDriver *pwm = new Adafruit_PWMServoDriver(0x40 - i);
+        Adafruit_PWMServoDriver *pwm = new Adafruit_PWMServoDriver(0x40 + i);
         pwm->begin();
         pwm->setPWMFreq(1600);  // 1600? is the maximum PWM frequency
         boards[i] = *pwm;
