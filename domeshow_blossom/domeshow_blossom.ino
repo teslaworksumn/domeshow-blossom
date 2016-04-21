@@ -1,6 +1,6 @@
 //#include <WSWire.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <Crc16.h>
+#include <crc16.h>
 
 #define DEBUG
 #ifdef DEBUG
@@ -20,7 +20,7 @@ byte magic_status = 0;
 byte state = STATE_READY;
 
 Adafruit_PWMServoDriver *boards = new Adafruit_PWMServoDriver[NUM_BOARDS];
-Crc16 crc;
+crc16 crc;
 
 byte *data;
 uint16_t data_len;
@@ -53,7 +53,7 @@ void loop() {
             #endif
             messagewalk = true;
             cts();
-            if (Serial.available() > 8) {
+            if (Serial.available() > 1) {
                 Serial.print("Peek: ");
                 char b = Serial.peek();
                 Serial.println(b);

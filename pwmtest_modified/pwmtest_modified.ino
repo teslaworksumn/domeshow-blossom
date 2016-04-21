@@ -20,9 +20,9 @@
 #include <Adafruit_PWMServoDriver.h>
 
 // called this way, it uses the default address 0x40
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // you can also call it with a different address you want
-//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x42);
 
 #if defined(ARDUINO_ARCH_SAMD)  
 // for Zero, output on USB Serial console, remove line below if using programming port to program the Zero!
@@ -55,6 +55,9 @@ void loop() {
   // Drive each PWM in a 'wave'
   for (uint16_t i=0; i<4096; i += 8) {
     for (uint8_t pwmnum=0; pwmnum < 16; pwmnum++) {
+      Serial.print(i);
+      Serial.print(' ');
+      Serial.println(pwmnum);
       pwm.setPWM(pwmnum, 0, (i + (4096/16)*pwmnum) % 4096 );
     }
   }
