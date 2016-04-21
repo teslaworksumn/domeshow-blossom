@@ -1,14 +1,11 @@
-#include <Wire.h>
+//#include <WSWire.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <crc16.h>
+#include <Crc16.h>
 
 #define DEBUG
 #ifdef DEBUG
 boolean messagewalk = false;  // Prevents spamming Serial monitor
 #endif
-
-#define RTSPIN 2
-#define CTSPIN 3
 
 #define NUM_BOARDS 9
 #define CH_PER_BOARD 16
@@ -23,16 +20,15 @@ byte magic_status = 0;
 byte state = STATE_READY;
 
 Adafruit_PWMServoDriver *boards = new Adafruit_PWMServoDriver[NUM_BOARDS];
-crc16 crc;
+Crc16 crc;
 
 byte *data;
 uint16_t data_len;
 
 
 void setup() {
-    pinMode(RTSPIN, INPUT);
-    pinMode(CTSPIN, OUTPUT);
     Serial.begin(115200);
+    Serial.write('B');
 
     // Guess at size of data array
     data_len = NUM_BOARDS * CH_PER_BOARD;
@@ -56,7 +52,7 @@ void loop() {
                 if (!messagewalk) Serial.println("READY");
             #endif
             messagewalk = true;
-            digitalWrite(CTSPIN, HIGH);
+            cts();
             if (Serial.available() > 8) {
                 Serial.print("Peek: ");
                 char b = Serial.peek();
@@ -79,7 +75,6 @@ void loop() {
                 if (!messagewalk) Serial.println("READING");
             #endif
             messagewalk = true;
-            digitalWrite(CTSPIN, LOW);
             if (Serial.available() > 0) {
                 uint16_t len = getTwoBytesSerial();
                 Serial.print("Length: ");
@@ -110,7 +105,6 @@ void loop() {
             #ifdef DEBUG
                 if (!messagewalk) Serial.println("WRITING");
             #endif
-            digitalWrite(CTSPIN, LOW);
             for (uint16_t i = 0; i < data_len; i++) {
                 uint8_t board_idx = i / CH_PER_BOARD;
                 uint8_t channel_idx = i % CH_PER_BOARD;
@@ -151,6 +145,12 @@ void readData(uint16_t len) {
     // Read in data from serial
     Serial.readBytes(data, len);
     
+}
+
+void cts() {
+    for (int i=MAGIC_LENGTH-1; i>=0; i--) {
+        Serial.write(magic[i]);
+    }
 }
 
 
