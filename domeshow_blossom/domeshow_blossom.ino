@@ -1,4 +1,4 @@
-//#include <WSWire.h>
+#include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <crc16.h>
 
@@ -34,11 +34,13 @@ void setup() {
     data_len = NUM_BOARDS * CH_PER_BOARD;
     data = new byte[data_len];
     
+    uint8_t addresses[] = {0x42, 0x44, 0x41, 0x45, 0x40, 0x43, 0x46, 0x47, 0x48};
+    
     // Setup breakout boards
     for (uint8_t i = 0; i < NUM_BOARDS; i++)
     {
         // the default (and highest) address is 0x40
-        Adafruit_PWMServoDriver *pwm = new Adafruit_PWMServoDriver(0x40 + i);
+        Adafruit_PWMServoDriver *pwm = new Adafruit_PWMServoDriver(addresses[i]);
         pwm->begin();
         pwm->setPWMFreq(1600);  // 1600? is the maximum PWM frequency
         boards[i] = *pwm;
