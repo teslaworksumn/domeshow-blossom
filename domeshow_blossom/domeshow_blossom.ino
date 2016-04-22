@@ -54,7 +54,7 @@ void loop() {
                 if (!messagewalk) Serial.println("READY");
             #endif
             messagewalk = true;
-            cts();
+            //cts();
             if (Serial.available() > 1) {
                 Serial.print("Peek: ");
                 char b = Serial.peek();
